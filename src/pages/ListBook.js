@@ -16,18 +16,20 @@ const ListBook = ({ searchTerm }) => {
   const [books, setBooks] = useState([]);
   const navigate = useNavigate();
 
-  const fetchBooks = async () => {
-    try {
-      const token = localStorage.getItem('bookbay_token');
-      const res = await api.get('/books/', {
+  const fetchBooks = () => {
+    const token = localStorage.getItem('bookbay_token');
+    api
+      .get('/books/', {
         headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        if (res.data.status) {
+          setBooks(res.data.data);
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching books:', err.message);
       });
-      if (res.data.status) {
-        setBooks(res.data.data);
-      }
-    } catch (err) {
-      console.error('Error fetching books:', err.message);
-    }
   };
 
   useEffect(() => {
@@ -38,10 +40,9 @@ const ListBook = ({ searchTerm }) => {
     navigate(`/view/${id}`);
   };
 
-      const filteredBooks = books.filter((book) =>
-      book.title.toLowerCase().includes((searchTerm || '').trim().toLowerCase())
-    );
-
+  const filteredBooks = books.filter((book) =>
+    book.title.toLowerCase().includes((searchTerm || '').trim().toLowerCase())
+  );
 
   return (
     <Container sx={{ mt: 6, mb: 6 }}>
@@ -63,7 +64,6 @@ const ListBook = ({ searchTerm }) => {
                   },
                 }}
               >
-            
                 <CardMedia
                   component="img"
                   image={`http://localhost:5000/${book.image}`}
@@ -75,7 +75,6 @@ const ListBook = ({ searchTerm }) => {
                   }}
                 />
 
-            
                 <Box sx={{ display: 'flex', flexDirection: 'column', flex: 1 }}>
                   <CardContent
                     sx={{
@@ -87,7 +86,6 @@ const ListBook = ({ searchTerm }) => {
                       py: 2.5,
                     }}
                   >
-                  
                     <Box>
                       <Typography
                         variant="h6"
@@ -117,7 +115,6 @@ const ListBook = ({ searchTerm }) => {
                       </Typography>
                     </Box>
 
-                
                     <Box
                       sx={{
                         display: 'flex',

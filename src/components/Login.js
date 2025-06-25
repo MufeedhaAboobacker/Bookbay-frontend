@@ -29,7 +29,7 @@ const Login = () => {
       localStorage.setItem('bookbay_token', token);
       localStorage.setItem('bookbay_user', JSON.stringify(data));
 
-      alert('Woww you Logged In!');
+      alert('Login successful!!!');
 
       const user = JSON.parse(localStorage.getItem('bookbay_user'));
 

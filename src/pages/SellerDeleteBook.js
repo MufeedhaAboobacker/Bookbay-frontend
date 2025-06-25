@@ -68,7 +68,7 @@ const DeleteBook = () => {
   }
 
   return (
-    <Container maxWidth="sm" sx={{ mt: 8 ,  paddingBottom:"146px" }}>
+    <Container maxWidth="sm" sx={{ mt: 8, paddingBottom: '146px' }}>
       <Paper elevation={4} sx={{ p: 5, borderRadius: 3 }}>
         <Typography
           variant="h5"

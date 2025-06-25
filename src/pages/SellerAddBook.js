@@ -63,31 +63,32 @@ const AddBook = () => {
     navigate('/seller/home');
   };
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    const token = localStorage.getItem('bookbay_token');
-    const data = new FormData();
-    Object.entries(formData).forEach(([key, value]) => data.append(key, value));
+  const handleSubmit = (e) => {
+  e.preventDefault();
+  const token = localStorage.getItem('bookbay_token');
+  const data = new FormData();
+  Object.entries(formData).forEach(([key, value]) => data.append(key, value));
 
-    try {
-      const res = await api.post('books/add', data, {
-        headers: {
-          'Content-Type': 'multipart/form-data',
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
+  api
+    .post('books/add', data, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+        Authorization: `Bearer ${token}`,
+      },
+    })
+    .then((res) => {
       if (res.data.status) {
         alert('Book added successfully!');
         navigate('/seller/home');
       } else {
         alert('Failed to add book');
       }
-    } catch (err) {
+    })
+    .catch((err) => {
       console.error(err);
       alert('Something went wrong');
-    }
-  };
+    });
+    };
 
   return (
     <Container maxWidth="sm" sx={{ mt: 6, mb: 6 }}>
