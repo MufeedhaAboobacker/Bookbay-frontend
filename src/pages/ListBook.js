@@ -8,23 +8,27 @@ import {
   Button,
   Box,
   Container,
+  Pagination,
 } from '@mui/material';
 import { useNavigate } from 'react-router-dom';
 import api from '../api';
 
 const ListBook = ({ searchTerm }) => {
   const [books, setBooks] = useState([]);
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
   const navigate = useNavigate();
 
-  const fetchBooks = () => {
+  const fetchBooks = (pageNum = 1) => {
     const token = localStorage.getItem('bookbay_token');
-    api
-      .get('/books/', {
+    api.get(`/books?page=${pageNum}&limit=6&search=${searchTerm}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
+
       .then((res) => {
         if (res.data.status) {
           setBooks(res.data.data);
+          setTotalPages(res.data.totalPages);
         }
       })
       .catch((err) => {
@@ -33,16 +37,17 @@ const ListBook = ({ searchTerm }) => {
   };
 
   useEffect(() => {
-    fetchBooks();
-  }, []);
+    fetchBooks(page);
+  }, [page]);
 
   const handleView = (id) => {
     navigate(`/view/${id}`);
   };
 
-  const filteredBooks = books.filter((book) =>
-    book.title.toLowerCase().includes((searchTerm || '').trim().toLowerCase())
-  );
+const filteredBooks = books.filter((book) =>
+  book.title.toLowerCase().includes((searchTerm || '').trim().toLowerCase())
+);
+
 
   return (
     <Container sx={{ mt: 6, mb: 6 }}>
@@ -163,6 +168,35 @@ const ListBook = ({ searchTerm }) => {
           </Grid>
         )}
       </Grid>
+
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 5 }}>
+          <Pagination
+            count={totalPages}
+            page={page}
+            onChange={(e, value) => setPage(value)}
+            shape="rounded"
+            sx={{
+              '& .MuiPaginationItem-root': {
+                color: '#32a89b',
+                fontWeight: 600,
+                borderRadius: 2,
+                border: '1px solid #32a89b',
+                '&:hover': {
+                  backgroundColor: '#e0f7f5',
+                },
+              },
+              '& .Mui-selected': {
+                backgroundColor: '#32a89b !important',
+                color: '#fff',
+                borderColor: '#32a89b',
+                '&:hover': {
+                  backgroundColor: '#279183 !important',
+                },
+              },
+            }}
+          />
+        </Box>
+
     </Container>
   );
 };

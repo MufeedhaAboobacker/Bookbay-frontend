@@ -34,26 +34,18 @@ function AppLayout() {
       {!isHomePage && <Header />}
 
       <Routes>
-       
         <Route path="/" element={<Home />} />
         <Route path="/redirect" element={<RoleBasedRedirect />} />
-
-
-        
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/list" element={<ListBook />} />
         <Route path="/view/:id" element={<ViewBook />} />
-        
         <Route path="/viewProfile/" element={<UserProfile />} />
         <Route path="/editProfile/" element={<EditProfile />} />
-
         <Route path="/add" element={<AddBook />} />
         <Route path="/update/:id" element={<UpdateBook />} />
         <Route path="/delete/:id" element={<DeleteBook />} />
         <Route path="/seller/home" element={<SellerHome />} />
-
-        
         <Route path="/buyer/home" element={<BuyerHome />} />
       </Routes>
 

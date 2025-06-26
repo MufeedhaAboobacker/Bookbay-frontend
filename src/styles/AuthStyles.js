@@ -5,7 +5,7 @@ const authStyles = {
     justifyContent: 'center',
     alignItems: 'center',
     background: 'linear-gradient(135deg, #f0f4f8 0%, #d9e2ec 50%, #f0f4f8 100%)',
-    px: 2,
+    py: 2,
   },
   formBox: {
     bgcolor: '#ffffff',
