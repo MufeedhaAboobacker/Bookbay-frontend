@@ -1,58 +1,85 @@
 import React, { useEffect, useState } from 'react';
 import {
-  Box,
-  Button,
   Container,
-  Grid,
   TextField,
-  Typography,
+  Button,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  FormControl,
+  InputLabel,
+  Select,
   MenuItem,
-  CircularProgress,
-  Paper,
+  Box,
+  Typography,
+  CircularProgress
 } from '@mui/material';
-import axios from 'axios';
 import { useParams, useNavigate } from 'react-router-dom';
+import { useForm, Controller } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
+import api from '../api';
 
-const categories = ['fiction','non-fiction','educational','biography','fantasy','science-fiction',
-  'romance','mystery','thriller','self-help','history','philosophy','children','young-adult','comics',
-  'graphic-novels','religion','health','business','technology','travel','poetry','cookbooks','art','sports',
-  'language','other'];
+const categories = [
+  'fiction', 'non-fiction', 'educational', 'biography', 'fantasy', 'science-fiction',
+  'romance', 'mystery', 'thriller', 'self-help', 'history', 'philosophy', 'children',
+  'young-adult', 'comics', 'graphic-novels', 'religion', 'health', 'business', 'technology',
+  'travel', 'poetry', 'cookbooks', 'art', 'sports', 'language', 'other'
+];
+
+const validationSchema = yup.object().shape({
+  title: yup.string().required('Title is required'),
+  author: yup.string().required('Author is required'),
+  price: yup.number().typeError('Price must be a number').positive('Price must be positive').required('Price is required'),
+  description: yup.string().required('Description is required'),
+  category: yup.string().required('Category is required'),
+  rating: yup.number().typeError('Rating must be a number').min(0, 'Minimum rating is 0').max(5, 'Maximum rating is 5').required('Rating is required'),
+  stock: yup.number().typeError('Stock must be a number').integer('Stock must be an integer').min(1, 'Stock must be at least 1').required('Stock is required'),
+});
 
 const UpdateBook = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    title: '',
-    author: '',
-    price: '',
-    description: '',
-    stock: '',
-    rating: '',
-    category: '',
-  });
+  const [imagePreview, setImagePreview] = useState(null);
+  const [file, setFile] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Check if user is a seller
+  const {
+    control,
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(validationSchema),
+  });
+
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('bookbay_user'));
     if (!user || user.role !== 'seller') {
       alert('Access denied. Only sellers can update books.');
-      navigate('/login'); 
+      navigate('/login');
     }
   }, [navigate]);
 
-  // Fetch book data
   useEffect(() => {
     const fetchBook = async () => {
       try {
         const token = localStorage.getItem('bookbay_token');
-        const res = await axios.get(`http://localhost:5000/api/books/${id}`, {
+        const res = await api.get(`/books/${id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
         if (res.data.status) {
-          setFormData(res.data.data);
+          const data = res.data.data;
+          Object.keys(data).forEach((key) => {
+            if (key !== 'image') setValue(key, data[key]);
+          });
+          if (data.image) {
+            setImagePreview(`http://localhost:5000/${data.image}`);
+          }
         }
       } catch (error) {
         console.error('Error fetching book:', error);
@@ -62,34 +89,49 @@ const UpdateBook = () => {
     };
 
     fetchBook();
-  }, [id]);
+  }, [id, setValue]);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const onSubmit = async (formData) => {
+    const token = localStorage.getItem('bookbay_token');
+    const data = new FormData();
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+    Object.entries(formData).forEach(([key, value]) => {
+      data.append(key, value);
+    });
+
+    if (file) {
+      data.append('image', file);
+    }
+
     try {
-      const token = localStorage.getItem('bookbay_token');
-      const res = await axios.patch(`http://localhost:5000/api/books/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` },
+      const res = await api.patch(`/books/${id}`, data, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+          Authorization: `Bearer ${token}`,
+        },
       });
 
       if (res.data.status) {
         alert('Book updated successfully!');
         navigate('/seller/home');
-      }
-    } catch (error) {
-      if (error.response?.status === 403) {
-        alert('You are not authorized to update this book.');
       } else {
-        alert('Failed to update book. Please try again.');
+        alert('Failed to update book');
       }
-      console.error('Update failed:', error.response?.data || error.message);
+    } catch (err) {
+      console.error(err);
+      alert('Something went wrong');
     }
   };
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      setFile(selected);
+      setImagePreview(URL.createObjectURL(selected));
+    }
+  };
+
+  const handleCancel = () => navigate('/seller/home');
 
   if (loading) {
     return (
@@ -100,143 +142,170 @@ const UpdateBook = () => {
   }
 
   return (
-    <Container maxWidth="md" sx={{ mt: 5, mb: 5 }}>
-      <Paper elevation={3} sx={{ p: { xs: 3, sm: 5 }, borderRadius: 4 }}>
-        <Typography
-          variant="h4"
-          align="center"
-          gutterBottom
-          sx={{ fontWeight: 700, color: '#32a89b', fontFamily: 'Gilroy-Bold' }}
-        >
-          Update Book
-        </Typography>
-
-        <form onSubmit={handleSubmit}>
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Book Title"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Author"
-                name="author"
-                value={formData.author}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Price (₹)"
-                name="price"
-                type="number"
-                value={formData.price}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Stock Quantity"
-                name="stock"
-                type="number"
-                value={formData.stock}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-                inputProps={{ min: 0 }}
-              />
-            </Grid>
-
-            <Grid item xs={12}>
-              <TextField
-                label="Description"
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                fullWidth
-                multiline
-                rows={4}
-                required
-                variant="outlined"
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                label="Rating"
-                name="rating"
-                type="number"
-                value={formData.rating}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-                inputProps={{ step: 0.1, min: 0, max: 5 }}
-              />
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <TextField
-                select
-                label="Category"
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                fullWidth
-                required
-                variant="outlined"
-              >
-                <MenuItem value="" disabled>
-                  Select Category
-                </MenuItem>
-                {categories.map((cat) => (
-                  <MenuItem key={cat} value={cat}>
-                    {cat.charAt(0).toUpperCase() + cat.slice(1)}
-                  </MenuItem>
-                ))}
-              </TextField>
-            </Grid>
-          </Grid>
-
-          <Button
-            type="submit"
-            variant="contained"
-            size="large"
-            fullWidth
+    <Box
+      sx={{
+        minHeight: 'calc(100vh - 128px)',
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        position: 'relative',
+        px: 2,
+        py: 6,
+        '&::before': {
+          content: '""',
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          height: '100%',
+          width: '100%',
+          backgroundColor: 'rgba(0,0,0,0.6)',
+          backgroundSize: 'cover',
+          backgroundPosition: 'center',
+          zIndex: 1,
+        },
+      }}
+    >
+      <Container maxWidth="sm" sx={{ position: 'relative', zIndex: 2 }}>
+        <Card sx={{ borderRadius: 3, backgroundColor: 'transparent' }}>
+          <CardHeader
+            title="Update Book"
             sx={{
-              mt: 4,
-              bgcolor: '#32a89b',
-              color: 'white',
-              fontWeight: 600,
-              fontFamily: 'Gilroy-Semi',
-              '&:hover': {
-                bgcolor: '#279183',
+              textAlign: 'center',
+              color: '#fff',
+              py: 2,
+              '& .MuiCardHeader-title': {
+                fontSize: '1.6rem',
+                fontWeight: 'bold',
               },
             }}
-          >
-            Save Changes
-          </Button>
-        </form>
-      </Paper>
-    </Container>
+          />
+          <Divider />
+          <CardContent sx={{ py: 4, px: 3 }}>
+            <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
+              <Grid container spacing={3} direction="column">
+                {['title', 'author', 'price', 'rating', 'stock', 'description'].map((field) => (
+                  <Grid item key={field}>
+                    <TextField
+                      label={field.charAt(0).toUpperCase() + field.slice(1)}
+                      type={field === 'description' ? 'text' : field === 'price' || field === 'rating' || field === 'stock' ? 'number' : 'text'}
+                      multiline={field === 'description'}
+                      rows={field === 'description' ? 3 : undefined}
+                      fullWidth
+                      {...register(field)}
+                      error={!!errors[field]}
+                      helperText={errors[field]?.message}
+                      InputLabelProps={{ style: { color: '#ccc' } }}
+                      InputProps={{ style: { color: '#fff' } }}
+                    />
+                  </Grid>
+                ))}
+
+                <Grid item>
+                  <FormControl fullWidth error={!!errors.category}>
+                    <InputLabel id="category-label" sx={{ color: '#ccc' }}>
+                      Category
+                    </InputLabel>
+                    <Controller
+                      name="category"
+                      control={control}
+                      render={({ field }) => (
+                        <Select
+                          labelId="category-label"
+                          {...field}
+                          sx={{ color: '#fff' }}
+                        >
+                          <MenuItem value="" disabled>Select Category</MenuItem>
+                          {categories.map((cat) => (
+                            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                          ))}
+                        </Select>
+                      )}
+                    />
+                    {errors.category && (
+                      <Typography variant="caption" color="error" sx={{ ml: 2 }}>{errors.category.message}</Typography>
+                    )}
+                  </FormControl>
+                </Grid>
+
+                <Grid item>
+                  {imagePreview && (
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="subtitle2" mb={1} sx={{ color: '#fff' }}>
+                        {file ? 'New Image Preview' : 'Current Book Image'}
+                      </Typography>
+                      <img
+                        src={imagePreview}
+                        alt="Book"
+                        style={{
+                          width: 160,
+                          height: 160,
+                          objectFit: 'cover',
+                          borderRadius: 10,
+                          border: '2px solid #32a89b',
+                        }}
+                      />
+                    </Box>
+                  )}
+                  <Button
+                    variant="outlined"
+                    component="label"
+                    fullWidth
+                    sx={{
+                      mt: 2,
+                      borderColor: '#32a89b',
+                      color: '#32a89b',
+                      fontWeight: 600,
+                      py: 1.3,
+                    }}
+                  >
+                    Upload {imagePreview ? 'New ' : ''}Image
+                    <input type="file" hidden accept="image/*" onChange={handleFileChange} />
+                  </Button>
+                </Grid>
+
+                <Grid item>
+                  <Grid container spacing={2} justifyContent="center">
+                    <Grid item xs={12} sm={6}>
+                      <Button
+                        type="submit"
+                        fullWidth
+                        variant="contained"
+                        sx={{
+                          bgcolor: '#32a89b',
+                          color: '#fff',
+                          fontWeight: 600,
+                          py: 1.2,
+                          '&:hover': { bgcolor: '#279183' },
+                        }}
+                      >
+                        Save Changes
+                      </Button>
+                    </Grid>
+                    <Grid item xs={12} sm={6}>
+                      <Button
+                        type="button"
+                        fullWidth
+                        variant="outlined"
+                        onClick={handleCancel}
+                        sx={{
+                          fontWeight: 600,
+                          py: 1.2,
+                          color: '#ddd',
+                          borderColor: '#aaa',
+                          '&:hover': { bgcolor: '#444' },
+                        }}
+                      >
+                        Cancel
+                      </Button>
+                    </Grid>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </form>
+          </CardContent>
+        </Card>
+      </Container>
+    </Box>
   );
 };
 

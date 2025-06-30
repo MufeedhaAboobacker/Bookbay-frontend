@@ -28,75 +28,75 @@ const SellerHome = () => {
   }, []);
 
   return (
-    <Container sx={{ mt: 4 }}>
-      {/* Header Row */}
-      <Box
+    <Box
         sx={{
-          display: 'flex',
-          justifyContent: 'space-evenly',
-          alignItems: 'flex-start',
-          mb: 1,
-          gap: 1,
+          paddingTop:'10px',
+          paddingBottom:'102px',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)', 
         }}
       >
-        <Box>
-          <Typography variant="h4" fontWeight={600}>
-            Welcome {sellerName}
-          </Typography>
-          {/* <Typography variant="subtitle1" color="text.secondary">
-            Manage your books and listings here.
-          </Typography> */}
-        </Box>
-
-     
-        <Tooltip title="View Profile">
-          <IconButton
-            onClick={() => navigate('/viewProfile')}
+        <Container sx={{ mt: 4
+          
+         }}>
+          <Box
             sx={{
-              backgroundColor: '#32a89b',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: '#279183',
-              },
-              width: 44,
-              height: 44,
-              p:0,
+              display: 'flex',
+              justifyContent: 'space-evenly',
+              alignItems: 'center',
+              mb: 1,
+              gap: 1,
             }}
           >
-            {sellerImage ? (
-              <Avatar
-                src={`http://localhost:5000/${sellerImage}`}
-                alt={sellerName}
-                sx={{ width: 56, height: 56 }}
-              />
-            ) : (
+            <Box>
+              <Typography variant="h4" fontWeight={600} sx={{ color: '#fff' }}>
+                Welcome {sellerName}
+              </Typography>
+            </Box>
 
+            <Tooltip title="View Profile">
+              <IconButton
+                onClick={() => navigate('/viewProfile')}
+                sx={{
+                  backgroundColor: '#32a89b',
+                  color: 'white',
+                  '&:hover': {
+                    backgroundColor: '#279183',
+                  },
+                  width: 44,
+                  height: 44,
+                  p: 0,
+                }}
+              >
+                {sellerImage ? (
+                  <Avatar
+                    src={`http://localhost:5000/${sellerImage}`}
+                    alt={sellerName}
+                    sx={{ width: 56, height: 56 }}
+                  />
+                ) : (
+                  <AccountCircleIcon sx={{ fontSize: 32 }} />
+                )}
+              </IconButton>
+            </Tooltip>
+          </Box>
 
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 5 }}>
+            <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center">
+              <Button
+                variant="contained"
+                color="primary"
+                startIcon={<AddIcon />}
+                onClick={() => navigate('/add')}
+              >
+                Add Book
+              </Button>
+            </Stack>
+          </Box>
 
-
-            <AccountCircleIcon sx={{ fontSize: 32 }} />
-            )}
-          </IconButton>
-        </Tooltip>
+          <ListBook />
+        </Container>
       </Box>
 
-    
-      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3, mb: 5 }}>
-        <Stack direction="row" spacing={2} flexWrap="wrap" justifyContent="center">
-          <Button
-            variant="contained"
-            color="primary"
-            startIcon={<AddIcon />}
-            onClick={() => navigate('/add')}
-          >
-            Add Book
-          </Button>
-        </Stack>
-      </Box>
-
-     
-      <ListBook />
-    </Container>
   );
 };
 

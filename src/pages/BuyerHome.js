@@ -18,7 +18,6 @@ const BuyerHome = () => {
   const [buyerImage, setBuyerImage] = useState(null);
   const navigate = useNavigate();
 
-  // Load buyer info from localStorage
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('bookbay_user'));
     if (user) {
@@ -28,8 +27,15 @@ const BuyerHome = () => {
   }, []);
 
   return (
+     <Box
+        sx={{
+          paddingTop:'10px',
+          paddingBottom:'10px',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+        }}
+      >
     <Container sx={{ mt: 4 }}>
-      {/* Header Row */}
+      
       <Box
         sx={{
           display: 'flex',
@@ -40,15 +46,10 @@ const BuyerHome = () => {
         }}
       >
         <Box>
-          <Typography variant="h4" fontWeight={600}>
-            Welcome {buyerName}
-          </Typography>
-          {/* <Typography variant="subtitle1" color="text.secondary">
-            Explore available books and make purchases.
-          </Typography> */}
+          <Typography variant="h4" fontWeight={600} sx={{ color: '#fff' }}>
+              Welcome {buyerName}
+            </Typography>
         </Box>
-
-        
         <Tooltip title="View Profile">
           <IconButton
             onClick={() => navigate('/viewProfile')}
@@ -83,11 +84,28 @@ const BuyerHome = () => {
           variant="outlined"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
+          InputLabelProps={{ style: { color: '#fff' } }}
+          InputProps={{ style: { color: '#fff' } }}
+          sx={{
+            '& .MuiOutlinedInput-root': {
+              '& fieldset': {
+                borderColor: '#fff',
+              },
+              '&:hover fieldset': {
+                borderColor: '#fff',
+              },
+              '&.Mui-focused fieldset': {
+                borderColor: '#fff',
+              },
+            },
+          }}
         />
+
+
       </Box>
 
       <ListBook searchTerm={search} />
-    </Container>
+    </Container></Box>
   );
 };
 

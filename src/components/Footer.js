@@ -4,23 +4,25 @@ import { Typography, Box } from '@mui/material';
 const Footer = () => {
   return (
     <Box
-      component="footer"
-      sx={{
-        position: 'static',
-        bottom: 0,
-        width: '100%',
-        zIndex: 1300,
-        bgcolor: '#32a89b' ,
-        color: 'white',
-        py: 2,
-        boxShadow: 3,
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        textAlign: 'center',
-        paddingBottom: '37px',
-      }}
-    >
+    component="footer"
+    sx={{
+    position: 'static',
+    bottom: 0,
+    width: '100%',
+    zIndex: 1300,
+    backgroundColor:'transparent',
+    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+    color: 'white',
+    py: 2,
+    boxShadow: 'none', 
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    textAlign: 'center',
+    paddingBottom: '37px',
+  }}
+>
+
       <Typography
         variant="body2"
         sx={{ fontFamily: 'gilroy-semi', fontWeight: 500 }}

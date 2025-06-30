@@ -9,67 +9,78 @@ import {
   MenuItem,
   Grid,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { yupResolver } from '@hookform/resolvers/yup';
+import * as yup from 'yup';
 import authStyles from '../styles/AuthStyles';
 import api from '../api';
 
+const schema = yup.object().shape({
+  name: yup.string().required('Name is required'),
+  email: yup.string().email('Invalid email').required('Email is required'),
+  password: yup
+  .string()
+  .required('Password is required')
+  .min(8, 'Password must be at least 8 characters')
+  .matches(/[a-z]/, 'Must include at least one lowercase letter')
+  .matches(/[A-Z]/, 'Must include at least one uppercase letter')
+  .matches(/\d/, 'Must include at least one number')
+  .matches(/[!@#$%^&*(),.?":{}|<>]/, 'Must include at least one special character'),
+
+  role: yup.string().oneOf(['buyer', 'seller'], 'Invalid role').required('Role is required'),
+  image: yup
+    .mixed()
+    .test('fileType', 'Only image files allowed', (value) => {
+      if (!value || value.length === 0) return true; // Optional 
+      return value[0].type.startsWith('image/');
+    }),
+});
+
 const Register = () => {
   const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    role: '',
-    image: null,
-  });
-
   const [imagePreview, setImagePreview] = useState(null);
 
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  const {
+    register,
+    control,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = useForm({
+    resolver: yupResolver(schema),
+  });
 
-  const handleFileChange = (e) => {
-    const file = e.target.files[0];
-    setFormData((prev) => ({ ...prev, image: file }));
-    if (file) {
-      setImagePreview(URL.createObjectURL(file));
-    }
-  };
-
-  const handleRegister = async (e) => {
-    e.preventDefault();
-
+  const onSubmit = async (formData) => {
     const data = new FormData();
     data.append('name', formData.name);
     data.append('email', formData.email);
     data.append('password', formData.password);
     data.append('role', formData.role);
-    if (formData.image) data.append('image', formData.image);
+    if (formData.image && formData.image.length > 0) {
+      data.append('image', formData.image[0]);
+    }
 
-    const res = await api.post('/auth/register', data, {
+    await api.post('/auth/register', data, {
       headers: { 'Content-Type': 'multipart/form-data' },
-      }).then((res)=> {
-        const { token, data: user } = res.data;
+    })
+    .then((res) => {
+      const { token, data: user } = res.data;
+      localStorage.setItem('bookbay_token', token);
+      localStorage.setItem('bookbay_user', JSON.stringify(user));
+      localStorage.setItem('role', user.role);
+      alert('Registration successful!');
+      navigate(user.role === 'seller' ? '/seller/home' : '/buyer/home');
+    })
+    .catch((error) => {
+      console.error('Registration failed:', error);
+      alert(error?.response?.data?.message || 'Registration failed!');
+    });
+  };
 
-        localStorage.setItem('bookbay_token', token);
-        localStorage.setItem('bookbay_user', JSON.stringify(user));
-        localStorage.setItem('role', user.role);
-
-        alert('Registration successful!');
-
-        // Redirect based on role
-        if (user.role === 'seller') {
-          navigate('/seller/home');
-        } else {
-          navigate('/buyer/home');
-        }
-      }).catch((error)=> {
-        console.error('Registration failed:', error);
-        const msg = error?.response?.data?.message || 'Registration failed!';
-        alert(msg);
-      })
+  const handleImageChange = (e) => {
+    const file = e.target.files[0];
+    setValue('image', e.target.files);
+    if (file) setImagePreview(URL.createObjectURL(file));
   };
 
   return (
@@ -80,60 +91,60 @@ const Register = () => {
             Register
           </Typography>
 
-          <form onSubmit={handleRegister} encType="multipart/form-data">
+          <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
             <Grid container spacing={2}>
               <Grid item xs={12} sm={6}>
                 <TextField
                   label="Name"
-                  name="name"
                   fullWidth
-                  value={formData.name}
-                  onChange={handleChange}
-                  required
+                  {...register('name')}
+                  error={!!errors.name}
+                  helperText={errors.name?.message}
+                  sx={authStyles.textFieldWhite}
                 />
               </Grid>
-              <Grid item xs={12} sm={6}>
-                  <TextField
-                    select
-                    label="Role"
-                    name="role"
-                    fullWidth
-                    value={formData.role}
-                    onChange={handleChange}
-                    required
-                    sx={{
-                      '& .MuiSelect-select': {
-                        paddingRight: '144px !important'  
-                      }
-                    }}
-                  >
-                    <MenuItem value="buyer">Buyer</MenuItem>
-                    <MenuItem value="seller">Seller</MenuItem>
-                  </TextField>
-                </Grid>
 
+              <Grid item xs={12} sm={6}>
+                <TextField
+                  select
+                  label="Role"
+                  fullWidth
+                  {...register('role')}
+                  error={!!errors.role}
+                  helperText={errors.role?.message}
+                  sx={{
+                    ...authStyles.textFieldWhite,
+                    '& .MuiSelect-select': {
+                      paddingRight: '124px !important',
+                    },
+                  }}
+                >
+                  <MenuItem value="buyer">Buyer</MenuItem>
+                  <MenuItem value="seller">Seller</MenuItem>
+                </TextField>
+              </Grid>
             </Grid>
 
             <TextField
               label="Email"
-              name="email"
               type="email"
               fullWidth
               margin="normal"
-              value={formData.email}
-              onChange={handleChange}
-              required
+              {...register('email')}
+              error={!!errors.email}
+              helperText={errors.email?.message}
+              sx={authStyles.textFieldWhite}
             />
 
             <TextField
               label="Password"
-              name="password"
               type="password"
               fullWidth
               margin="normal"
-              value={formData.password}
-              onChange={handleChange}
-              required
+              {...register('password')}
+              error={!!errors.password}
+              helperText={errors.password?.message}
+              sx={authStyles.textFieldWhite}
             />
 
             {!imagePreview && (
@@ -146,12 +157,21 @@ const Register = () => {
                 Upload Profile Image
                 <input
                   type="file"
-                  name="image"
                   accept="image/*"
                   hidden
-                  onChange={handleFileChange}
+                  {...register('image')}
+                  onChange={(e) => {
+                    handleImageChange(e);
+                    register('image').onChange(e);
+                  }}
                 />
               </Button>
+            )}
+
+            {errors.image && (
+              <Typography variant="caption" color="error">
+                {errors.image.message}
+              </Typography>
             )}
 
             {imagePreview && (

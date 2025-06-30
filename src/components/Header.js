@@ -4,7 +4,14 @@ import { Link } from 'react-router-dom';
 
 const Header = () => {
   return (
-    <AppBar position="static" sx={{ bgcolor: '#32a89b' }}>
+    <AppBar
+        position="static"
+        sx={{
+          backgroundColor: 'transparent',
+          backgroundColor:' rgba(0, 0, 0, 0.6)',
+          boxShadow: 'none',
+        }}
+>
       <Toolbar>
         <Typography
           variant="h6"
@@ -23,26 +30,7 @@ const Header = () => {
          <i className="fa-sharp fa-solid fa-book-open-reader"></i> 
           BookBay
         </Typography>
-
         <Box sx={{ marginLeft: 'auto' }}>
-          {/* <Button
-            component={Link}
-            to="/login"
-            variant="outlined"
-            color="inherit"
-            sx={{
-              mr: 1,
-              fontFamily: 'gilroy-semi',
-              borderColor: 'white',
-              color: 'white',
-              '&:hover': {
-                borderColor: '#ccc',
-                backgroundColor: '#ffffff22',
-              },
-            }}
-          >
-            Get Started
-          </Button> */}
         </Box>
       </Toolbar>
     </AppBar>
