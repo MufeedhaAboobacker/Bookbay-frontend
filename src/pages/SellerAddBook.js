@@ -37,9 +37,10 @@ const schema = yup.object().shape({
   image: yup
     .mixed()
     .required('Image is required')
-    .test('fileType', 'Only image files allowed', (value) =>
-      value && value.length > 0 && value[0].type.startsWith('image/')
-    ),
+    .test('fileType', 'Only image files allowed', (value) => {
+      if (!value || value.length === 0) return true; // Optional 
+      return value[0].type.startsWith('image/');
+    })
 });
 
 const AddBook = () => {
@@ -212,7 +213,7 @@ const AddBook = () => {
                 <Grid item>
                   <Button variant="contained" component="label" fullWidth color='#fff'>
                     Upload Book Image
-                    <input type="file" hidden accept="image/*" onChange={handleImageChange} />
+                    <input type="file" hidden accept="image/*" {...register('image')} onChange={handleImageChange} />
                   </Button>
                   {errors.image && (
                     <Typography variant="caption" color="error">
