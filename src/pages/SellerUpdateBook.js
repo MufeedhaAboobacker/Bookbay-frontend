@@ -17,9 +17,8 @@ import {
   CircularProgress
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
-import { useForm, Controller } from 'react-hook-form';
-import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
+import { validate as validateYup } from 'yup';
 import api from '../api';
 
 const categories = [
@@ -42,19 +41,22 @@ const validationSchema = yup.object().shape({
 const UpdateBook = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [imagePreview, setImagePreview] = useState(null);
-  const [file, setFile] = useState(null);
-  const [loading, setLoading] = useState(true);
 
-  const {
-    control,
-    register,
-    handleSubmit,
-    setValue,
-    formState: { errors },
-  } = useForm({
-    resolver: yupResolver(validationSchema),
+  const [formData, setFormData] = useState({
+    title: '',
+    author: '',
+    price: '',
+    description: '',
+    category: '',
+    rating: '',
+    stock: '',
+    image: '',
   });
+
+  const [errors, setErrors] = useState({});
+  const [file, setFile] = useState(null);
+  const [imagePreview, setImagePreview] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const user = JSON.parse(localStorage.getItem('bookbay_user'));
@@ -73,12 +75,9 @@ const UpdateBook = () => {
         });
 
         if (res.data.status) {
-          const data = res.data.data;
-          Object.keys(data).forEach((key) => {
-            if (key !== 'image') setValue(key, data[key]);
-          });
-          if (data.image) {
-            setImagePreview(`http://localhost:5000/${data.image}`);
+          setFormData(res.data.data);
+          if (res.data.data.image) {
+            setImagePreview(`http://localhost:5000/${res.data.data.image}`);
           }
         }
       } catch (error) {
@@ -89,16 +88,41 @@ const UpdateBook = () => {
     };
 
     fetchBook();
-  }, [id, setValue]);
+  }, [id]);
 
-  const onSubmit = async (formData) => {
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const selected = e.target.files[0];
+    if (selected) {
+      setFile(selected);
+      setImagePreview(URL.createObjectURL(selected));
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    try {
+      await validationSchema.validate(formData, { abortEarly: false });
+      setErrors({});
+    } catch (validationErrors) {
+      const formErrors = {};
+      validationErrors.inner.forEach((error) => {
+        formErrors[error.path] = error.message;
+      });
+      setErrors(formErrors);
+      return;
+    }
+
     const token = localStorage.getItem('bookbay_token');
     const data = new FormData();
-
     Object.entries(formData).forEach(([key, value]) => {
       data.append(key, value);
     });
-
     if (file) {
       data.append('image', file);
     }
@@ -123,15 +147,9 @@ const UpdateBook = () => {
     }
   };
 
-  const handleFileChange = (e) => {
-    const selected = e.target.files[0];
-    if (selected) {
-      setFile(selected);
-      setImagePreview(URL.createObjectURL(selected));
-    }
+  const handleCancel = () => {
+    navigate('/seller/home');
   };
-
-  const handleCancel = () => navigate('/seller/home');
 
   if (loading) {
     return (
@@ -161,6 +179,7 @@ const UpdateBook = () => {
           backgroundColor: 'rgba(0,0,0,0.6)',
           backgroundSize: 'cover',
           backgroundPosition: 'center',
+          boxShadow: 0,
           zIndex: 1,
         },
       }}
@@ -181,19 +200,22 @@ const UpdateBook = () => {
           />
           <Divider />
           <CardContent sx={{ py: 4, px: 3 }}>
-            <form onSubmit={handleSubmit(onSubmit)} encType="multipart/form-data">
+            <form onSubmit={handleSubmit} encType="multipart/form-data">
               <Grid container spacing={3} direction="column">
-                {['title', 'author', 'price', 'rating', 'stock', 'description'].map((field) => (
+                {["title", "author", "price", "rating", "stock", "description"].map((field) => (
                   <Grid item key={field}>
                     <TextField
                       label={field.charAt(0).toUpperCase() + field.slice(1)}
-                      type={field === 'description' ? 'text' : field === 'price' || field === 'rating' || field === 'stock' ? 'number' : 'text'}
+                      name={field}
+                      type={field === 'price' || field === 'rating' || field === 'stock' ? 'number' : 'text'}
                       multiline={field === 'description'}
                       rows={field === 'description' ? 3 : undefined}
+                      value={formData[field]}
+                      onChange={handleChange}
                       fullWidth
-                      {...register(field)}
-                      error={!!errors[field]}
-                      helperText={errors[field]?.message}
+                     
+                      error={Boolean(errors[field])}
+                      helperText={errors[field] || ''}
                       InputLabelProps={{ style: { color: '#ccc' } }}
                       InputProps={{ style: { color: '#fff' } }}
                     />
@@ -201,28 +223,25 @@ const UpdateBook = () => {
                 ))}
 
                 <Grid item>
-                  <FormControl fullWidth error={!!errors.category}>
+                  <FormControl fullWidth required error={Boolean(errors.category)}>
                     <InputLabel id="category-label" sx={{ color: '#ccc' }}>
                       Category
                     </InputLabel>
-                    <Controller
+                    <Select
+                      labelId="category-label"
                       name="category"
-                      control={control}
-                      render={({ field }) => (
-                        <Select
-                          labelId="category-label"
-                          {...field}
-                          sx={{ color: '#fff' }}
-                        >
-                          <MenuItem value="" disabled>Select Category</MenuItem>
-                          {categories.map((cat) => (
-                            <MenuItem key={cat} value={cat}>{cat}</MenuItem>
-                          ))}
-                        </Select>
-                      )}
-                    />
+                      value={formData.category}
+                      onChange={handleChange}
+                      label="Category"
+                      sx={{ color: '#fff' }}
+                    >
+                      <MenuItem value="" disabled>Select Category</MenuItem>
+                      {categories.map((cat) => (
+                        <MenuItem key={cat} value={cat}>{cat}</MenuItem>
+                      ))}
+                    </Select>
                     {errors.category && (
-                      <Typography variant="caption" color="error" sx={{ ml: 2 }}>{errors.category.message}</Typography>
+                      <Typography variant="caption" color="error" sx={{ ml: 2 }}>{errors.category}</Typography>
                     )}
                   </FormControl>
                 </Grid>
