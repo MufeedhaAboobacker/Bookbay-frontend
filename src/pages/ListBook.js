@@ -21,6 +21,7 @@ const ListBook = ({ searchTerm }) => {
 
   useEffect(() => {
     fetchBooks()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [page])
 
   const fetchBooks = () => {

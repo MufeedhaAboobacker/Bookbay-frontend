@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Container,
   TextField,
@@ -8,8 +8,11 @@ import {
   Box,
   MenuItem,
   Grid,
+  Link,
 } from '@mui/material';
 import { useForm } from 'react-hook-form';
+
+
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
 import authStyles from '../styles/AuthStyles';
@@ -42,7 +45,6 @@ const Register = () => {
 
   const {
     register,
-    control,
     handleSubmit,
     setValue,
     formState: { errors },
@@ -198,7 +200,20 @@ const Register = () => {
             >
               Register
             </Button>
+
           </form>
+          <Box sx={authStyles.linkText}>
+            <Typography variant="body2">
+              Have an account?{' '}
+              <Link
+                component={RouterLink}
+                to="/login"
+                sx={authStyles.registerLink}
+              >
+                Login
+              </Link>
+            </Typography>
+          </Box>
         </Box>
       </Container>
     </Box>

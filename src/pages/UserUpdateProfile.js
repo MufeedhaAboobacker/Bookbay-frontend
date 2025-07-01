@@ -32,7 +32,6 @@ const EditProfile = () => {
 
   const {
     control,
-    register,
     handleSubmit,
     setValue,
     formState: { errors },

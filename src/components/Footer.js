@@ -11,7 +11,7 @@ const Footer = () => {
     width: '100%',
     zIndex: 1300,
     backgroundColor:'transparent',
-    backgroundColor: 'rgba(0, 0, 0, 0.6)', 
+    // backgroundColor: 'rgba(0, 0, 0, 0.6)', 
     color: 'white',
     py: 2,
     boxShadow: 'none', 

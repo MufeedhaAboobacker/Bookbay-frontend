@@ -18,7 +18,6 @@ import {
 } from '@mui/material';
 import { useParams, useNavigate } from 'react-router-dom';
 import * as yup from 'yup';
-import { validate as validateYup } from 'yup';
 import api from '../api';
 
 const categories = [
