@@ -124,7 +124,7 @@ const ViewBook = () => {
             <Box sx={{ width: { xs: '100%', md: '40%' }, mb: { xs: 3, md: 0 }, mr: { md: 4 } }}>
               <CardMedia
                 component="img"
-                image={book.image ? `http://localhost:5000/${book.image}` : '/images/default-book.jpeg'}
+                image={book.image ? `${process.env.REACT_APP_BACKEND_URL}/${book.image}` : '/images/default-book.jpeg'}
                 alt={book.title}
                 sx={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 2 }}
               />

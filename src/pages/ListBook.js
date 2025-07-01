@@ -72,7 +72,7 @@ return (
               >
                 <CardMedia
                   component="img"
-                  image={book.image ? `http://localhost:5000/${book.image}` : '/images/default-book.jpeg'}
+                  image={book.image ? `${process.env.REACT_APP_BACKEND_URL}/${book.image}` : '/images/default-book.jpeg'}
                   alt={book.title}
                   sx={{
                     width: 200,

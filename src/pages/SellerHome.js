@@ -69,7 +69,7 @@ const SellerHome = () => {
               >
                 {sellerImage ? (
                   <Avatar
-                    src={`http://localhost:5000/${sellerImage}`}
+                    src={`${process.env.REACT_APP_BACKEND_URL}/${sellerImage}`}
                     alt={sellerName}
                     sx={{ width: 56, height: 56 }}
                   />

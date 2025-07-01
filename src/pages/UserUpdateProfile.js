@@ -51,7 +51,7 @@ const EditProfile = () => {
           setValue('name', res.data.data.name);
           setValue('email', res.data.data.email);
           if (res.data.data.image) {
-            setPreview(`http://localhost:5000/${res.data.data.image}`);
+            setPreview(`${process.env.REACT_APP_BACKEND_URL}/${res.data.data.image}`);
           }
         }
       })

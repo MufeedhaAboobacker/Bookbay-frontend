@@ -60,7 +60,7 @@ const UserProfile = () => {
   }
 
   const imageUrl = profile.image
-    ? `http://localhost:5000/${profile.image}`
+    ? `${process.env.REACT_APP_BACKEND_URL}/${profile.image}`
     : null;
 
   return (

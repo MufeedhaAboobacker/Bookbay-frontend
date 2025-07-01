@@ -76,7 +76,7 @@ const UpdateBook = () => {
         if (res.data.status) {
           setFormData(res.data.data);
           if (res.data.data.image) {
-            setImagePreview(`http://localhost:5000/${res.data.data.image}`);
+            setImagePreview(`${process.env.REACT_APP_BACKEND_URL}/${res.data.data.image}`);
           }
         }
       } catch (error) {

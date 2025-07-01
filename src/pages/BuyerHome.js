@@ -66,7 +66,7 @@ const BuyerHome = () => {
           >
             {buyerImage ? (
               <Avatar
-                src={`http://localhost:5000/${buyerImage}`}
+                src={`${process.env.REACT_APP_BACKEND_URL}/${buyerImage}`}
                 alt={buyerName}
                 sx={{ width: 56, height: 56 }}
               />
