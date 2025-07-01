@@ -7,8 +7,7 @@ const Header = () => {
     <AppBar
         position="static"
         sx={{
-          backgroundColor: 'transparent',
-          // backgroundColor:' rgba(0, 0, 0, 0.6)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6) !important',
           boxShadow: 'none',
         }}
 >
